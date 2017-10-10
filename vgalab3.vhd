@@ -33,10 +33,12 @@ architecture arch of vga_control is
 	-- control variables
 	signal h_end, v_end: std_logic;
 
-	begin
+	signal vsync_reg, vsync_reg2: std_logic;
+	signal hsync_reg, hsync_reg2: std_logic;
 
-	h_end <= '1' when count_1688 = (PPL + HFP + HBP + HRE - 1) else '0';
-	v_end <= '1' when count_1066 = (LIN + VFP + VBP + VRE - 1) else '0';
+	signal red_reg, blue_reg, green_reg: std_logic_vector(3 downto 0);
+
+	begin
 
 	process (clk, reset)
 		begin
@@ -46,12 +48,22 @@ architecture arch of vga_control is
 			count_1066 <= (others => 0);
 			h_end <= '0';
 			v_end <= '0';
+			output_colour <= (others => 0);
 
 		elsif (clk'event and clk = '1') then
-			count_1688 <= count_1688_next;
-				if (h_end = '1') then
-					count_1066 <= count_1066_next;
-				end if;
+			-- Sync output control signals
+			vsync_reg2 <= vsync_reg;
+			vsync <= vsync_reg2;
+			hsync_reg2 <= hsync_reg;
+			hsync <= hsync_reg2;
+
+			--Sync colours
+			red_reg <= output_colour(11 downto 8);
+			red <= red_reg;
+			blue_reg <= output_colour(7 downto 4);
+			blue <= blue_reg;
+			green_reg <= output_colour(3 downto 0);
+			green <= green_reg;
 		end if;
 	end process;
 
@@ -87,5 +99,16 @@ architecture arch of vga_control is
 		begin
 			if (mode = '0') then
 		end if;		
+
+	end process;
+
+	hsync_reg <= '1' when count_1688 < 1577 else '0';
+	vsync_reg <= '1' when count_1066 < 1064 else '0';
+
+
+	h_end <= '1' when count_1688 = (PPL + HFP + HBP + HRE - 1) else '0';
+	v_end <= '1' when count_1066 = (LIN + VFP + VBP + VRE - 1) else '0';
+
+
 
 end arch;
