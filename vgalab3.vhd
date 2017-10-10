@@ -37,6 +37,7 @@ architecture arch of vga_control is
 	signal hsync_reg, hsync_reg2: std_logic;
 
 	signal red_reg, blue_reg, green_reg: std_logic_vector(3 downto 0);
+	signal output_colour: std_logic_vector(11 downto 0);
 
 	begin
 
@@ -97,9 +98,32 @@ architecture arch of vga_control is
 
 	signalgen: process (clk, mode, count_1688, count_1066)
 		begin
+		--TODO: implement the colour clock
 			if (mode = '0') then
-		end if;		
-
+				if (HFP >= count_1688) then
+					output_colour <= (others => '0');
+				elsif (HFP+426 >= count_1688) then
+					output_colour <= "000000001111";
+				elsif (HFP+852 >= count_1688) then
+					output_colour <= "000011110000";
+				elsif (HFP+1280 >= count_1688) then
+					output_colour <= "111100000000";
+				else
+					output_colour <= (others => '0');
+				end if;
+			elsif (mode = '1') then
+				if (VFP >= count_1688) then
+					output_colour <= (others => '0');
+				elsif (VFP+342 >= count_1688) then
+					output_colour <= "000000001111";
+				elsif (VFP+682 >= count_1688) then
+					output_colour <= "000011110000";
+				elsif (VFP+1024 >= count_1688) then
+					output_colour <= "111100000000";
+				else
+					output_colour <= (others => '0');
+				end if;
+			end if;		
 	end process;
 
 	hsync_reg <= '1' when count_1688 < 1577 else '0';
@@ -108,7 +132,5 @@ architecture arch of vga_control is
 
 	h_end <= '1' when count_1688 = (PPL + HFP + HBP + HRE - 1) else '0';
 	v_end <= '1' when count_1066 = (LIN + VFP + VBP + VRE - 1) else '0';
-
-
 
 end arch;
