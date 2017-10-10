@@ -32,7 +32,7 @@ architecture arch of vga_control is
 
 	-- control variables
 	signal h_end, v_end: std_logic;
-
+	signal output_colour: std_logic_vector(11 downto 0);
 	begin
 
 	h_end <= '1' when count_1688 = (PPL + HFP + HBP + HRE - 1) else '0';
@@ -88,48 +88,28 @@ architecture arch of vga_control is
 		--TODO: implement the colour clock
 			if (mode = '0') then
 				if (HFP >= count_1688) then
-					red <='0'&"000";
-					green <= "0000";
-					blue <= "0000";
+					output_colour <= (others => '0');
 				elsif (HFP+426 >= count_1688) then
-					red <='0'&"000";
-					green <= "0000";
-					blue <= "1111";
+					output_colour <= "000000001111";
 				elsif (HFP+852 >= count_1688) then
-					red <='0'&"000";
-					green <= "1111";
-					blue <= "0000";
+					output_colour <= "000011110000";
 				elsif (HFP+1280 >= count_1688) then
-					red <='0'&"111";
-					green <= "0000";
-					blue <= "0000";
+					output_colour <= "111100000000";
 				else
-					red <='0'&"000";
-					green <= "0000";
-					blue <= "0000";
+					output_colour <= (others => '0');
 				end if;
 			elsif (mode = '1') then
 				if (VFP >= count_1688) then
-					red <='0'&"000";
-					green <= "0000";
-					blue <= "0000";
+					output_colour <= (others => '0');
 				elsif (VFP+342 >= count_1688) then
-					red <='0'&"000";
-					green <= "0000";
-					blue <= "1111";
+					output_colour <= "000000001111";
 				elsif (VFP+682 >= count_1688) then
-					red <='0'&"000";
-					green <= "1111";
-					blue <= "0000";
+					output_colour <= "000011110000";
 				elsif (VFP+1024 >= count_1688) then
-					red <='0'&"111";
-					green <= "0000";
-					blue <= "0000";
+					output_colour <= "111100000000";
 				else
-					red <='0'&"000";
-					green <= "0000";
-					blue <= "0000";
+					output_colour <= (others => '0');
 				end if;
 			end if;		
-
+	end process;
 end arch;
