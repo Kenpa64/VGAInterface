@@ -35,18 +35,28 @@ architecture arch of vga_control is
 
 	begin
 
+	h_end <= '1' when count_1688 = (PPL + HFP + HBP + HRE - 1) else '0';
+	v_end <= '1' when count_1066 = (LIN + VFP + VBP + VRE - 1) else '0';
+
 	process (clk, reset)
 		begin
-		if (reset = '1') then	
-		-- Reset signals
+		if (reset = '1' and clk'event and clk = '1') then	
+			-- Reset signals
+			count_1688 <= (others => 0);
+			count_1066 <= (others => 0);
+			h_end <= '0';
+			v_end <= '0';
 
 		elsif (clk'event and clk = '1') then
-
+			count_1688 <= count_1688_next;
+				if (h_end = '1') then
+					count_1066 <= count_1066_next;
+				end if;
 		end if;
 	end process;
 
 	-- 1688 counter, clock times for horizontal pixels
-	counter1688: process (clk, h_end, counter1688)
+	counter1688: process (clk, h_end, count_1688)
 		begin
 		if (clk'event and clk = '1') then
 			if (h_end = '1') then
@@ -55,12 +65,12 @@ architecture arch of vga_control is
 				count_1688_next <= count_1688 + 1;
 			end if;
 		else
-			count_1688_next <= counter1688
+			count_1688_next <= count_1688; -- Lo podemos quitar
 		end if;
 	end process;
 
 
-	counter1066: process (clk, h_end, v_end, counter1066)
+	counter1066: process (clk, h_end, v_end, count_1066)
 		begin
 		if (clk'event and clk = '1' and h_end = '1') then
 			if (v_end = '1') then
@@ -69,8 +79,13 @@ architecture arch of vga_control is
 				count_1066_next <= count_1066 + 1;
 			end if;
 		else
-			count_1066_next <= counter1066
+			count_1066_next <= count_1066; -- Lo podemos quitar
 		end if;
 	end process;
+
+	signalgen: process (clk, mode, count_1688, count_1066)
+		begin
+			if (mode = '0') then
+		end if;		
 
 end arch;
