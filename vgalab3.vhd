@@ -85,7 +85,51 @@ architecture arch of vga_control is
 
 	signalgen: process (clk, mode, count_1688, count_1066)
 		begin
+		--TODO: implement the colour clock
 			if (mode = '0') then
-		end if;		
+				if (HFP >= count_1688) then
+					red <='0'&"000";
+					green <= "0000";
+					blue <= "0000";
+				elsif (HFP+426 >= count_1688) then
+					red <='0'&"000";
+					green <= "0000";
+					blue <= "1111";
+				elsif (HFP+852 >= count_1688) then
+					red <='0'&"000";
+					green <= "1111";
+					blue <= "0000";
+				elsif (HFP+1280 >= count_1688) then
+					red <='0'&"111";
+					green <= "0000";
+					blue <= "0000";
+				else
+					red <='0'&"000";
+					green <= "0000";
+					blue <= "0000";
+				end if;
+			elsif (mode = '1') then
+				if (VFP >= count_1688) then
+					red <='0'&"000";
+					green <= "0000";
+					blue <= "0000";
+				elsif (VFP+342 >= count_1688) then
+					red <='0'&"000";
+					green <= "0000";
+					blue <= "1111";
+				elsif (VFP+682 >= count_1688) then
+					red <='0'&"000";
+					green <= "1111";
+					blue <= "0000";
+				elsif (VFP+1024 >= count_1688) then
+					red <='0'&"111";
+					green <= "0000";
+					blue <= "0000";
+				else
+					red <='0'&"000";
+					green <= "0000";
+					blue <= "0000";
+				end if;
+			end if;		
 
 end arch;
