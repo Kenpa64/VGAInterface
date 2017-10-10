@@ -32,21 +32,31 @@ architecture arch of vga_control is
 
 	-- control variables
 	signal h_end, v_end: std_logic;
-
+	signal output_colour: std_logic_vector(11 downto 0);
 	begin
+
+	h_end <= '1' when count_1688 = (PPL + HFP + HBP + HRE - 1) else '0';
+	v_end <= '1' when count_1066 = (LIN + VFP + VBP + VRE - 1) else '0';
 
 	process (clk, reset)
 		begin
-		if (reset = '1') then	
-		-- Reset signals
+		if (reset = '1' and clk'event and clk = '1') then	
+			-- Reset signals
+			count_1688 <= (others => 0);
+			count_1066 <= (others => 0);
+			h_end <= '0';
+			v_end <= '0';
 
 		elsif (clk'event and clk = '1') then
-
+			count_1688 <= count_1688_next;
+				if (h_end = '1') then
+					count_1066 <= count_1066_next;
+				end if;
 		end if;
 	end process;
 
 	-- 1688 counter, clock times for horizontal pixels
-	counter1688: process (clk, h_end, counter1688)
+	counter1688: process (clk, h_end, count_1688)
 		begin
 		if (clk'event and clk = '1') then
 			if (h_end = '1') then
@@ -55,12 +65,12 @@ architecture arch of vga_control is
 				count_1688_next <= count_1688 + 1;
 			end if;
 		else
-			count_1688_next <= counter1688
+			count_1688_next <= count_1688; -- Lo podemos quitar
 		end if;
 	end process;
 
 
-	counter1066: process (clk, h_end, v_end, counter1066)
+	counter1066: process (clk, h_end, v_end, count_1066)
 		begin
 		if (clk'event and clk = '1' and h_end = '1') then
 			if (v_end = '1') then
@@ -69,8 +79,37 @@ architecture arch of vga_control is
 				count_1066_next <= count_1066 + 1;
 			end if;
 		else
-			count_1066_next <= counter1066
+			count_1066_next <= count_1066; -- Lo podemos quitar
 		end if;
 	end process;
 
+	signalgen: process (clk, mode, count_1688, count_1066)
+		begin
+		--TODO: implement the colour clock
+			if (mode = '0') then
+				if (HFP >= count_1688) then
+					output_colour <= (others => '0');
+				elsif (HFP+426 >= count_1688) then
+					output_colour <= "000000001111";
+				elsif (HFP+852 >= count_1688) then
+					output_colour <= "000011110000";
+				elsif (HFP+1280 >= count_1688) then
+					output_colour <= "111100000000";
+				else
+					output_colour <= (others => '0');
+				end if;
+			elsif (mode = '1') then
+				if (VFP >= count_1688) then
+					output_colour <= (others => '0');
+				elsif (VFP+342 >= count_1688) then
+					output_colour <= "000000001111";
+				elsif (VFP+682 >= count_1688) then
+					output_colour <= "000011110000";
+				elsif (VFP+1024 >= count_1688) then
+					output_colour <= "111100000000";
+				else
+					output_colour <= (others => '0');
+				end if;
+			end if;		
+	end process;
 end arch;
